@@ -10,16 +10,42 @@ import type {
   InferRouteQuery,
 } from './typings';
 
+/**
+ * Options passed to the client dispatch function, containing the request parameters, query string, and body.
+ */
 export interface RouteActionOptions<TRoute> {
+  /** Dynamic route parameters. */
   params?: InferRouteParams<TRoute>;
+  /** URL query parameters. */
   query?: InferRouteQuery<TRoute>;
+  /** JSON or form request body. */
   body?: InferRouteBody<TRoute>;
 }
 
+/**
+ * Options for configuring the route client instance.
+ */
 export interface CreateRouteClientOptions {
+  /**
+   * Custom parser for non-ok API responses to return standardized error messages and issues.
+   */
   errorParser?: (res: Response) => Promise<{ message: string; issues?: any }>;
 }
 
+/**
+ * Creates a route action client hook with customizable error parsing.
+ *
+ * @param options - Hook configuration options.
+ * @returns A useRouteAction hook configured with options.
+ *
+ * @example
+ * const useApiAction = createRouteClient({
+ *   errorParser: async (res) => {
+ *     const data = await res.json();
+ *     return { message: data.message || 'Error occurred', issues: data.issues };
+ *   }
+ * });
+ */
 export function createRouteClient(options: CreateRouteClientOptions = {}) {
   const { errorParser } = options;
 
@@ -72,4 +98,13 @@ export function createRouteClient(options: CreateRouteClientOptions = {}) {
   };
 }
 
+/**
+ * Default React hook for calling Next.js API Routes.
+ * Infers input and output types directly from route definitions.
+ *
+ * @example
+ * const { dispatch, isLoading, result, error } = useRouteAction<typeof POST>('POST', '/api/todos');
+ * // trigger with args:
+ * dispatch({ body: { title: 'Buy milk' } });
+ */
 export const useRouteAction = createRouteClient();

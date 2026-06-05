@@ -8,6 +8,17 @@ import type {
   RouteDefinition,
 } from './typings';
 
+/**
+ * Builder class for creating type-safe Next.js API Routes.
+ * Supports chaining of validation schemas (params, query, body), metadata definition, and custom middlewares.
+ *
+ * @example
+ * export const POST = createRoute()
+ *   .body(z.object({ title: z.string() }))
+ *   .handler(async (_req, { body }) => {
+ *     return { success: true, body };
+ *   });
+ */
 export class RouteBuilder<
   TParamsSchema extends StandardSchemaV1 | undefined = undefined,
   TQuerySchema extends StandardSchemaV1 | undefined = undefined,
@@ -31,6 +42,11 @@ export class RouteBuilder<
     this.#onError = options?.onError;
   }
 
+  /**
+   * Sets the HTTP method for the route.
+   *
+   * @param m - HTTP method name (e.g. 'GET', 'POST', 'PATCH').
+   */
   method<M extends string>(m: M) {
     const clone = this.#clone();
     clone.#method = m as any;
@@ -44,6 +60,11 @@ export class RouteBuilder<
     >;
   }
 
+  /**
+   * Defines a schema to validate dynamic path parameters.
+   *
+   * @param schema - A Standard Schema (e.g. Zod, Valibot).
+   */
   params<T extends StandardSchemaV1>(schema: T) {
     const clone = this.#clone();
     clone.#paramsSchema = schema as any;
@@ -57,6 +78,11 @@ export class RouteBuilder<
     >;
   }
 
+  /**
+   * Defines a schema to validate URL query parameters.
+   *
+   * @param schema - A Standard Schema (e.g. Zod, Valibot).
+   */
   query<T extends StandardSchemaV1>(schema: T) {
     const clone = this.#clone();
     clone.#querySchema = schema as any;
@@ -70,6 +96,11 @@ export class RouteBuilder<
     >;
   }
 
+  /**
+   * Defines a schema to validate the HTTP request body.
+   *
+   * @param schema - A Standard Schema (e.g. Zod, Valibot).
+   */
   body<T extends StandardSchemaV1>(schema: T) {
     const clone = this.#clone();
     clone.#bodySchema = schema as any;
@@ -83,6 +114,11 @@ export class RouteBuilder<
     >;
   }
 
+  /**
+   * Defines a validation schema for metadata associated with the route.
+   *
+   * @param schema - A Standard Schema.
+   */
   defineMetadata<T extends StandardSchemaV1>(schema: T) {
     const clone = this.#clone();
     clone.#metadataSchema = schema as any;
@@ -96,6 +132,11 @@ export class RouteBuilder<
     >;
   }
 
+  /**
+   * Attaches metadata value to the route.
+   *
+   * @param value - The metadata value matching the defined metadata schema.
+   */
   metadata(
     value: TMetadataSchema extends StandardSchemaV1
       ? StandardSchemaV1.InferInput<TMetadataSchema>
@@ -113,6 +154,12 @@ export class RouteBuilder<
     >;
   }
 
+  /**
+   * Registers a middleware to run before the route handler.
+   * Middlewares can validate properties or inject variables into the context.
+   *
+   * @param middleware - The middleware function.
+   */
   use<TNewContext extends Record<string, unknown>>(
     middleware: MiddlewareFunction<
       TContext,
@@ -134,6 +181,12 @@ export class RouteBuilder<
     >;
   }
 
+  /**
+   * Defines the final request handler and builds the API route function.
+   *
+   * @param handlerFn - The route handler function receiving type-safe inputs.
+   * @returns An API Route handler function compatible with Next.js.
+   */
   handler<TReturn>(
     handlerFn: HandlerFunction<
       TParamsSchema extends StandardSchemaV1
@@ -281,6 +334,19 @@ export class RouteBuilder<
   }
 }
 
+/**
+ * Creates a new RouteBuilder instance to define a Next.js API Route with validation and middleware.
+ *
+ * @param options - Optional configuration options including global error handling.
+ * @returns A fresh RouteBuilder instance.
+ *
+ * @example
+ * const publicRoute = createRoute({
+ *   onError: ({ error }) => {
+ *     return Response.json({ error: (error as Error).message }, { status: 400 });
+ *   }
+ * });
+ */
 export function createRoute(options?: { onError?: ErrorHandlerFn }) {
   return new RouteBuilder(options);
 }
