@@ -1,6 +1,6 @@
 {
   "name": "@se-oss/next-route",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Schema-agnostic library for building and consuming Next.js API Routes with end-to-end type safety",
   "keywords": [
     "nextjs",
